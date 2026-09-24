@@ -138,3 +138,101 @@ button {
   box-shadow: 0 8px 25px var(--primary-glow);
   transform: scale(1.02);
 }
+
+/* Logo do jogo */
+.card-logo {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  background: rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  color: var(--primary);
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+}
+
+.card-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Highlights do confronto */
+.match-highlights {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--glass-border);
+  width: 100%;
+}
+
+.highlight-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  transition: var(--transition);
+}
+
+.highlight-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.highlight-item i {
+  color: var(--secondary);
+  font-size: 0.9rem;
+}
+
+.highlight-item .h-time {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+  margin-left: auto;
+}
+
+.highlight-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.highlight-link:hover {
+  color: var(--secondary);
+}
+
+/* Badge de contagem de highlights */
+.highlight-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 20px;
+  font-size: 0.7rem;
+  color: var(--secondary);
+  margin-left: auto;
+}
+
+/* Botão pequeno para "ver confrontos" no card do jogo */
+.btn-ghost {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-main);
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  border: 1px solid var(--glass-border);
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--primary);
+}

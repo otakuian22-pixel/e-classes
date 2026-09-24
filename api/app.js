@@ -9,6 +9,7 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
+
 // Lê o arquivo de dados
 function lerDados() {
     const caminho = path.join(__dirname, 'data.json');
@@ -109,3 +110,4 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Acesse: http://localhost:${PORT}`);
 });
+

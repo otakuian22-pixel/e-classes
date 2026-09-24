@@ -34,7 +34,11 @@
       "score1": 0,
       "score2": 0,
       "status": "scheduled",
-      "date": "2026-03-25T16:00"
+      "date": "2026-03-25T16:00",
+      "highlights": [
+        { "titulo": "ACE do jogador X", "url": "https://youtu.be/xxx", "tempo": "2:30" },
+        { "titulo": "Clutch 1v3", "url": "https://youtu.be/yyy", "tempo": "5:12" }
+      ]
     }
   ]
 }

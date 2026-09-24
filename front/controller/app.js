@@ -6,6 +6,35 @@ let state = {
     confrontos: [],
 };
 
+
+const LOGOS_PADRAO = {
+    'valorant': 'assets/logos/valorant.png',
+    'league of legends': 'assets/logos/lol.png',
+    'lol': 'assets/logos/lol.png',
+    'cs2': 'assets/logos/cs2.png',
+    'counter-strike': 'assets/logos/cs2.png',
+    'fortnite': 'assets/logos/fortnite.png',
+    'minecraft': 'assets/logos/minecraft.png',
+    'fifa': 'assets/logos/fifa.png',
+    'ea fc': 'assets/logos/fifa.png',
+    'rocket league': 'assets/logos/rocketleague.png',
+    'free fire': 'assets/logos/freefire.png',
+    'roblox': 'assets/logos/roblox.png',
+  };
+  
+  // Ícones fallback por gênero
+  const ICONES_GENERO = {
+    'fps': 'fa-crosshairs',
+    'moba': 'fa-chess-king',
+    'battle royale': 'fa-parachute-box',
+    'sports': 'fa-futbol',
+    'esportes': 'fa-futbol',
+    'sandbox': 'fa-cubes',
+    'luta': 'fa-hand-fist',
+    'corrida': 'fa-car',
+    'default': 'fa-gamepad'
+  };
+
 // Inicialização
 document.addEventListener('DOMContentLoaded', async () => {
     await carregarDados();
@@ -49,6 +78,28 @@ function configurarNavegacao() {
 function trocarView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(`view-${viewId}`).classList.add('active');
+
+    // Se saiu da view de confrontos, volta ao modo sem filtro
+    if (viewId !== 'confrontos') {
+        renderizarConfrontos(); // reseta título e lista
+    }
+}
+
+function renderizarJogos() {
+    const lista = document.getElementById('list-jogos');
+    lista.innerHTML = state.jogos.map(j => {
+        const qtdConfrontos = state.confrontos.filter(c => c.gameId == j.id).length;
+        return `
+        <div class="card">
+            ${renderizarLogoJogo(j, 48)}
+            <span class="card-tag">${j.genre}</span>
+            <h3>${j.name}</h3>
+            <p class="subtitle">${qtdConfrontos} confronto(s) registrado(s)</p>
+            <button class="btn-ghost" onclick="verConfrontosDoJogo(${j.id})">
+                <i class="fas fa-hand-fist"></i> Ver Confrontos
+            </button>
+        </div>`;
+    }).join('');
 }
 
 function renderizarTudo() {
@@ -146,17 +197,59 @@ function renderizarCompetidores() {
     }).join('');
 }
 
-function renderizarConfrontos() {
+function renderizarConfrontos(filtroJogoId = null) {
     const lista = document.getElementById('list-confrontos');
-    lista.innerHTML = state.confrontos.map(c => {
+
+    // Atualiza o título da seção conforme filtro
+    const header = document.querySelector('#view-confrontos header');
+    if (header) {
+        const titulo = header.querySelector('h1');
+        const sub = header.querySelector('.subtitle');
+        if (filtroJogoId) {
+            const jogo = state.jogos.find(j => j.id == filtroJogoId);
+            if (titulo) titulo.textContent = `Confrontos: ${jogo?.name || ''}`;
+            if (sub) sub.textContent = `Todos os confrontos registrados para ${jogo?.name || 'este jogo'}.`;
+        } else {
+            if (titulo) titulo.textContent = 'Confrontos Diretos';
+            if (sub) sub.textContent = 'Acompanhe e registre os resultados épicos.';
+        }
+    }
+
+    // Filtra
+    const confrontos = filtroJogoId
+        ? state.confrontos.filter(c => c.gameId == filtroJogoId)
+        : state.confrontos;
+
+    if (!confrontos.length) {
+        lista.innerHTML = `
+            <div class="card" style="grid-column:1/-1;text-align:center;padding:3rem;">
+                <i class="fas fa-hand-fist" style="font-size:3rem;color:var(--text-dim);margin-bottom:1rem;"></i>
+                <h3>Nenhum confronto registrado</h3>
+                <p class="subtitle">Ainda não há confrontos ${filtroJogoId ? 'para este jogo' : 'cadastrados'}.</p>
+            </div>`;
+        return;
+    }
+
+    lista.innerHTML = confrontos.map(c => {
         const jogo = state.jogos.find(j => j.id == c.gameId);
         const time1 = state.times.find(t => t.id == c.team1Id);
         const time2 = state.times.find(t => t.id == c.team2Id);
         const data = new Date(c.date).toLocaleString('pt-BR');
+        const qtdHighlights = (c.highlights || []).length;
 
         return `
             <div class="card">
-                <span class="card-tag">${jogo?.name || 'Jogo'} | ${data}</span>
+                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
+                    ${jogo ? renderizarLogoJogo(jogo, 40) : ''}
+                    <div style="flex:1;">
+                        <span class="card-tag">${jogo?.name || 'Jogo'} | ${data}</span>
+                    </div>
+                    ${qtdHighlights > 0 ? `
+                        <span class="highlight-badge">
+                            <i class="fas fa-video"></i> ${qtdHighlights}
+                        </span>` : ''}
+                </div>
+
                 <div class="match-card">
                     <div class="team-score">
                         <strong>${time1?.name || '???'}</strong>
@@ -168,6 +261,9 @@ function renderizarConfrontos() {
                         <div class="score">${c.score2}</div>
                     </div>
                 </div>
+
+                ${renderizarHighlights(c)}
+
                 <div style="margin-top: 1rem; text-align: center;">
                     <span class="card-tag" style="background: ${c.status === 'finished' ? '#10b981' : '#f59e0b'}">
                         ${c.status === 'finished' ? 'FINALIZADO' : 'AGENDADO'}

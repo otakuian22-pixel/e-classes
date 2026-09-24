@@ -196,3 +196,35 @@ p.subtitle {
     display: none;
   }
 }
+
+/* Responsivo */
+@media (max-width: 1024px) {
+  .app-container {
+    grid-template-columns: 1fr;
+  }
+
+  aside {
+    display: none;
+  }
+}
+
+/* Logo do jogo no formulário */
+.logo-preview {
+  width: 64px;
+  height: 64px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 1px solid var(--glass-border);
+  margin-top: 0.5rem;
+  display: none;
+}
+
+.logo-preview.visible {
+  display: block;
+}
+
+.input-hint {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 0.35rem;
+}
