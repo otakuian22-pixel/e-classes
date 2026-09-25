@@ -8,7 +8,11 @@ const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
+app.use('/assets', express.static(path.join(__dirname, 'assets')));
 
+// Servir arquivos estáticos
+app.use('/assets', express.static(path.join(__dirname, '..', 'assets')));
+app.use(express.static(path.join(__dirname, '..', 'front')));
 
 // Lê o arquivo de dados
 function lerDados() {
@@ -110,4 +114,3 @@ app.listen(PORT, () => {
     console.log(`Servidor rodando na porta ${PORT}`);
     console.log(`Acesse: http://localhost:${PORT}`);
 });
-

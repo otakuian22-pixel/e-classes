@@ -2,10 +2,10 @@
 @import './components.css';
 
 :root {
-  --primary: #6366f1;
-  --primary-glow: rgba(99, 102, 241, 0.4);
-  --secondary: #06b6d4;
-  --secondary-glow: rgba(6, 182, 212, 0.4);
+  --primary: #6E1E1F;
+  --primary-glow: rgba(110, 30, 31, 0.4);
+  --secondary: #8B2628;
+  --secondary-glow: rgba(139, 38, 40, 0.4);
   --accent: #f43f5e;
   --bg-dark: #050505;
   --surface: rgba(255, 255, 255, 0.06);
@@ -30,28 +30,6 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  top: -10%;
-  left: -10%;
-  width: 40%;
-  height: 40%;
-  background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
-  z-index: -1;
-}
-
-body::after {
-  content: '';
-  position: fixed;
-  bottom: -10%;
-  right: -10%;
-  width: 50%;
-  height: 50%;
-  background: radial-gradient(circle, var(--secondary-glow) 0%, transparent 70%);
-  z-index: -1;
 }
 
 /* Layout */
@@ -126,12 +104,11 @@ main {
   width: 100%;
 }
 
-/* Hero do dashboard */
 .hero {
   position: relative;
   height: 250px;
   border-radius: 24px;
-  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+  background: linear-gradient(135deg, #2a0a0b 0%, #4a1416 50%, #6E1E1F 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -141,6 +118,69 @@ main {
   overflow: hidden;
 }
 
+/* Banner rotativo de fundo */
+/* Banner rotativo infinito (marquee) */
+.hero-banner {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  /* Máscara para as bordas laterais ficarem suaves */
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%);
+}
+
+/* Este é o "trilho" que se move */
+.hero-banner-track {
+  display: flex;
+  align-items: center;
+  gap: 4rem;
+  animation: marquee 20s linear infinite;
+  will-change: transform;
+}
+
+.hero-banner-track img {
+  height: 120px;
+  width: auto;
+  max-width: 200px;
+  object-fit: contain;
+  opacity: 0.15;
+  filter: brightness(0.8) contrast(1.2);
+  flex-shrink: 0;
+}
+
+/* Animação: move metade da largura (porque temos 2 cópias das logos) */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.hero-banner img.active {
+  opacity: 0.15;
+}
+
+/* Conteúdo do hero (texto) */
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero-content h1 {
+  margin-bottom: 0;
+  font-size: 3rem;
+  text-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+}
+
+.hero-content .subtitle {
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
 .hero h1 {
   margin-bottom: 0;
   font-size: 3rem;
@@ -151,7 +191,7 @@ main {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.3) 0%, transparent 60%);
+  background: radial-gradient(circle at 80% 20%, rgba(139, 38, 40, 0.4) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -195,36 +235,4 @@ p.subtitle {
   aside {
     display: none;
   }
-}
-
-/* Responsivo */
-@media (max-width: 1024px) {
-  .app-container {
-    grid-template-columns: 1fr;
-  }
-
-  aside {
-    display: none;
-  }
-}
-
-/* Logo do jogo no formulário */
-.logo-preview {
-  width: 64px;
-  height: 64px;
-  border-radius: 14px;
-  object-fit: cover;
-  border: 1px solid var(--glass-border);
-  margin-top: 0.5rem;
-  display: none;
-}
-
-.logo-preview.visible {
-  display: block;
-}
-
-.input-hint {
-  font-size: 0.75rem;
-  color: var(--text-dim);
-  margin-top: 0.35rem;
 }

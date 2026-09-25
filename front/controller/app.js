@@ -6,35 +6,6 @@ let state = {
     confrontos: [],
 };
 
-
-const LOGOS_PADRAO = {
-    'valorant': 'assets/logos/valorant.png',
-    'league of legends': 'assets/logos/lol.png',
-    'lol': 'assets/logos/lol.png',
-    'cs2': 'assets/logos/cs2.png',
-    'counter-strike': 'assets/logos/cs2.png',
-    'fortnite': 'assets/logos/fortnite.png',
-    'minecraft': 'assets/logos/minecraft.png',
-    'fifa': 'assets/logos/fifa.png',
-    'ea fc': 'assets/logos/fifa.png',
-    'rocket league': 'assets/logos/rocketleague.png',
-    'free fire': 'assets/logos/freefire.png',
-    'roblox': 'assets/logos/roblox.png',
-  };
-  
-  // Ícones fallback por gênero
-  const ICONES_GENERO = {
-    'fps': 'fa-crosshairs',
-    'moba': 'fa-chess-king',
-    'battle royale': 'fa-parachute-box',
-    'sports': 'fa-futbol',
-    'esportes': 'fa-futbol',
-    'sandbox': 'fa-cubes',
-    'luta': 'fa-hand-fist',
-    'corrida': 'fa-car',
-    'default': 'fa-gamepad'
-  };
-
 // Inicialização
 document.addEventListener('DOMContentLoaded', async () => {
     await carregarDados();
@@ -78,32 +49,11 @@ function configurarNavegacao() {
 function trocarView(viewId) {
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
     document.getElementById(`view-${viewId}`).classList.add('active');
-
-    // Se saiu da view de confrontos, volta ao modo sem filtro
-    if (viewId !== 'confrontos') {
-        renderizarConfrontos(); // reseta título e lista
-    }
-}
-
-function renderizarJogos() {
-    const lista = document.getElementById('list-jogos');
-    lista.innerHTML = state.jogos.map(j => {
-        const qtdConfrontos = state.confrontos.filter(c => c.gameId == j.id).length;
-        return `
-        <div class="card">
-            ${renderizarLogoJogo(j, 48)}
-            <span class="card-tag">${j.genre}</span>
-            <h3>${j.name}</h3>
-            <p class="subtitle">${qtdConfrontos} confronto(s) registrado(s)</p>
-            <button class="btn-ghost" onclick="verConfrontosDoJogo(${j.id})">
-                <i class="fas fa-hand-fist"></i> Ver Confrontos
-            </button>
-        </div>`;
-    }).join('');
 }
 
 function renderizarTudo() {
     renderizarDashboard();
+    renderizarBannerHero();
     renderizarJogos();
     renderizarTimes();
     renderizarCompetidores();
@@ -111,6 +61,31 @@ function renderizarTudo() {
 }
 
 // --- Funções de renderização ---
+
+// Adicione essa função no app.js
+function renderizarBannerHero() {
+    const banner = document.getElementById('hero-banner');
+    if (!banner || state.jogos.length === 0) return;
+
+    // Monta as imagens uma vez
+    const imagensHTML = state.jogos.map(j => `
+        <img src="${j.logo}" alt="${j.name}">
+    `).join('');
+
+    // Duplica as imagens (necessário para o loop infinito)
+    banner.innerHTML = `
+        <div class="hero-banner-track">
+            ${imagensHTML}
+            ${imagensHTML}
+        </div>
+    `;
+
+    // Ajusta a duração da animação conforme a quantidade de jogos
+    // (mais jogos = mais tempo para não ficar rápido demais)
+    const track = banner.querySelector('.hero-banner-track');
+    const duracao = state.jogos.length * 6; // 6 segundos por jogo
+    track.style.animationDuration = `${duracao}s`;
+}
 
 function renderizarDashboard() {
     const stats = document.getElementById('dashboard-stats');
@@ -164,10 +139,9 @@ function renderizarDashboard() {
 function renderizarJogos() {
     const lista = document.getElementById('list-jogos');
     lista.innerHTML = state.jogos.map(j => `
-        <div class="card">
-            <span class="card-tag">${j.genre}</span>
+        <div class="card card-jogo" onclick="abrirDetalhesJogo(${j.id})">
+            <img src="${j.logo}" alt="Logo ${j.name}" class="card-logo">
             <h3>${j.name}</h3>
-            <p class="subtitle">ID: ${j.id}</p>
         </div>
     `).join('');
 }
@@ -197,59 +171,17 @@ function renderizarCompetidores() {
     }).join('');
 }
 
-function renderizarConfrontos(filtroJogoId = null) {
+function renderizarConfrontos() {
     const lista = document.getElementById('list-confrontos');
-
-    // Atualiza o título da seção conforme filtro
-    const header = document.querySelector('#view-confrontos header');
-    if (header) {
-        const titulo = header.querySelector('h1');
-        const sub = header.querySelector('.subtitle');
-        if (filtroJogoId) {
-            const jogo = state.jogos.find(j => j.id == filtroJogoId);
-            if (titulo) titulo.textContent = `Confrontos: ${jogo?.name || ''}`;
-            if (sub) sub.textContent = `Todos os confrontos registrados para ${jogo?.name || 'este jogo'}.`;
-        } else {
-            if (titulo) titulo.textContent = 'Confrontos Diretos';
-            if (sub) sub.textContent = 'Acompanhe e registre os resultados épicos.';
-        }
-    }
-
-    // Filtra
-    const confrontos = filtroJogoId
-        ? state.confrontos.filter(c => c.gameId == filtroJogoId)
-        : state.confrontos;
-
-    if (!confrontos.length) {
-        lista.innerHTML = `
-            <div class="card" style="grid-column:1/-1;text-align:center;padding:3rem;">
-                <i class="fas fa-hand-fist" style="font-size:3rem;color:var(--text-dim);margin-bottom:1rem;"></i>
-                <h3>Nenhum confronto registrado</h3>
-                <p class="subtitle">Ainda não há confrontos ${filtroJogoId ? 'para este jogo' : 'cadastrados'}.</p>
-            </div>`;
-        return;
-    }
-
-    lista.innerHTML = confrontos.map(c => {
+    lista.innerHTML = state.confrontos.map(c => {
         const jogo = state.jogos.find(j => j.id == c.gameId);
         const time1 = state.times.find(t => t.id == c.team1Id);
         const time2 = state.times.find(t => t.id == c.team2Id);
         const data = new Date(c.date).toLocaleString('pt-BR');
-        const qtdHighlights = (c.highlights || []).length;
 
         return `
             <div class="card">
-                <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem;">
-                    ${jogo ? renderizarLogoJogo(jogo, 40) : ''}
-                    <div style="flex:1;">
-                        <span class="card-tag">${jogo?.name || 'Jogo'} | ${data}</span>
-                    </div>
-                    ${qtdHighlights > 0 ? `
-                        <span class="highlight-badge">
-                            <i class="fas fa-video"></i> ${qtdHighlights}
-                        </span>` : ''}
-                </div>
-
+                <span class="card-tag">${jogo?.name || 'Jogo'} | ${data}</span>
                 <div class="match-card">
                     <div class="team-score">
                         <strong>${time1?.name || '???'}</strong>
@@ -261,9 +193,6 @@ function renderizarConfrontos(filtroJogoId = null) {
                         <div class="score">${c.score2}</div>
                     </div>
                 </div>
-
-                ${renderizarHighlights(c)}
-
                 <div style="margin-top: 1rem; text-align: center;">
                     <span class="card-tag" style="background: ${c.status === 'finished' ? '#10b981' : '#f59e0b'}">
                         ${c.status === 'finished' ? 'FINALIZADO' : 'AGENDADO'}
@@ -424,4 +353,73 @@ window.encerrarConfrontos = function (id) {
         confronto.status = 'finished';
         renderizarTudo();
     }
+};
+
+// --- Modal de Detalhes do Jogo ---
+
+window.abrirDetalhesJogo = function (jogoId) {
+    const jogo = state.jogos.find(j => j.id === jogoId);
+    if (!jogo) return;
+
+    // Preenche os dados do jogo
+    document.getElementById('detalhe-logo').src = jogo.logo;
+    document.getElementById('detalhe-titulo').textContent = jogo.name;
+    document.getElementById('detalhe-genero').textContent = jogo.genre;
+
+    // Configura o vídeo
+    const videoFrame = document.getElementById('detalhe-video');
+    videoFrame.src = `https://www.youtube.com/embed/${jogo.trailerId}?autoplay=1`;
+
+    // Filtra os confrontos deste jogo
+    const confrontosDoJogo = state.confrontos.filter(c => c.gameId === jogoId);
+
+    // Renderiza os confrontos
+    const listaConfrontos = document.getElementById('detalhe-confrontos');
+    
+    if (confrontosDoJogo.length === 0) {
+        listaConfrontos.innerHTML = '<p class="subtitle">Nenhum confronto agendado para este jogo.</p>';
+    } else {
+        listaConfrontos.innerHTML = confrontosDoJogo.map(c => {
+            const time1 = state.times.find(t => t.id === c.team1Id);
+            const time2 = state.times.find(t => t.id === c.team2Id);
+            const data = new Date(c.date).toLocaleString('pt-BR');
+            const statusClass = c.status === 'finished' ? 'status-finished' : 'status-scheduled';
+            const statusText = c.status === 'finished' ? 'FINALIZADO' : 'AGENDADO';
+
+            return `
+                <div class="confronto-item">
+                    <div class="confronto-info">
+                        <span class="confronto-data">${data}</span>
+                        <span class="confronto-status ${statusClass}">${statusText}</span>
+                    </div>
+                    <div class="confronto-times">
+                        <span class="time-nome">${time1?.name || '???'}</span>
+                        <span class="confronto-placar">${c.score1} x ${c.score2}</span>
+                        <span class="time-nome">${time2?.name || '???'}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // Exibe o modal
+    const modalDetalhes = document.getElementById('modal-detalhes');
+    modalDetalhes.style.display = 'flex';
+    setTimeout(() => {
+        modalDetalhes.style.opacity = '1';
+        modalDetalhes.style.pointerEvents = 'all';
+    }, 10);
+};
+
+window.fecharDetalhesJogo = function () {
+    const modalDetalhes = document.getElementById('modal-detalhes');
+    modalDetalhes.style.opacity = '0';
+    modalDetalhes.style.pointerEvents = 'none';
+    
+    // Para o vídeo
+    document.getElementById('detalhe-video').src = '';
+    
+    setTimeout(() => {
+        modalDetalhes.style.display = 'none';
+    }, 300);
 };
