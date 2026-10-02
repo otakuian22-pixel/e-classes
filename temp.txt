@@ -1,0 +1,154 @@
+1. Atualize o formulário no app.js
+Encontre o objeto formularios dentro da função abrirFormulario e substitua a chave jogo por esta versão:
+
+javascript
+jogo: `
+    <h2>Adicionar Jogo</h2>
+    <form onsubmit="salvarItem(event, 'jogos')">
+        <div class="form-group">
+            <label>Nome do Jogo</label>
+            <input type="text" name="name" required placeholder="Ex: League of Legends">
+        </div>
+
+        <div class="form-group">
+            <label>Gênero</label>
+            <select name="genre" required>
+                <option value="" disabled selected>Selecione um gênero</option>
+                <option value="MOBA">MOBA</option>
+                <option value="FPS">FPS</option>
+                <option value="Esport">Esport</option>
+                <option value="Fighting">Fighting</option>
+                <option value="RPG">RPG</option>
+                <option value="Battle Royale">Battle Royale</option>
+                <option value="Estratégia">Estratégia</option>
+                <option value="Card Game">Card Game</option>
+                <option value="Outro">Outro</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>URL da Logo</label>
+            <input 
+                type="url" 
+                name="logo" 
+                required 
+                placeholder="https://exemplo.com/logo.png"
+                oninput="previewLogo(this.value)"
+            >
+            <small style="color: var(--text-dim); font-size: 0.75rem; display: block; margin-top: 0.5rem;">
+                Cole o link direto da imagem (deve terminar em .png, .jpg ou .svg)
+            </small>
+            <div id="logo-preview" style="margin-top: 1rem; display: none;">
+                <img id="logo-preview-img" src="" alt="Preview" style="max-width: 120px; max-height: 120px; object-fit: contain; background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 12px;">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>ID do Trailer (YouTube)</label>
+            <input 
+                type="text" 
+                name="trailerId" 
+                required 
+                placeholder="Ex: vzHrjOMfHPY"
+            >
+            <small style="color: var(--text-dim); font-size: 0.75rem; display: block; margin-top: 0.5rem;">
+                Pegue apenas o código depois de <strong>watch?v=</strong> ou <strong>embed/</strong>. 
+                Ex: em <em>youtube.com/watch?v=<strong>vzHrjOMfHPY</strong></em>, o ID é <strong>vzHrjOMfHPY</strong>.
+            </small>
+        </div>
+
+        <div style="display:flex; gap: 1rem;">
+            <button type="submit" class="btn-primary">Salvar</button>
+            <button type="button" onclick="fecharModal()">Cancelar</button>
+        </div>
+    </form>
+`,
+2. Adicione a função de preview da logo no app.js
+Coloque essa função em qualquer lugar do app.js (de preferência perto das outras funções globais, com window.):
+
+javascript
+window.previewLogo = function (url) {
+    const container = document.getElementById('logo-preview');
+    const img = document.getElementById('logo-preview-img');
+
+    if (!url || url.trim() === '') {
+        container.style.display = 'none';
+        return;
+    }
+
+    img.src = url;
+    img.onload = () => {
+        container.style.display = 'block';
+    };
+    img.onerror = () => {
+        container.style.display = 'none';
+    };
+};
+3. Ajuste a função salvarItem para tratar campos novos
+A função atual já converte os IDs numéricos. Como agora o formulário de jogo envia logo e trailerId como strings, não precisa de conversão. Mas vale garantir que o trailerId seja limpo caso o usuário cole a URL inteira por engano.
+
+Adicione esta limpeza no salvarItem, logo após pegar os dados do form:
+
+javascript
+window.salvarItem = function (event, colecao) {
+    event.preventDefault();
+    const dados = Object.fromEntries(new FormData(event.target).entries());
+
+    // Validação para confrontos
+    if (colecao === 'confrontos') {
+        if (dados.team1Id === dados.team2Id) {
+            alert('Os times do confronto devem ser diferentes!');
+            return;
+        }
+    }
+
+    // Limpa o trailerId: se o usuário colar a URL inteira, extrai só o ID
+    if (dados.trailerId) {
+        dados.trailerId = extrairIdYoutube(dados.trailerId);
+    }
+
+    const maxId = state[colecao].reduce((max, item) => (item.id > max ? item.id : max), 0);
+    dados.id = maxId + 1;
+
+    if (dados.teamId) dados.teamId = Number(dados.teamId);
+    if (dados.gameId) dados.gameId = Number(dados.gameId);
+    if (dados.team1Id) dados.team1Id = Number(dados.team1Id);
+    if (dados.team2Id) dados.team2Id = Number(dados.team2Id);
+    if (dados.score1 !== undefined) dados.score1 = Number(dados.score1);
+    if (dados.score2 !== undefined) dados.score2 = Number(dados.score2);
+
+    state[colecao].push(dados);
+    renderizarTudo();
+    fecharModal();
+};
+E adicione a função auxiliar extrairIdYoutube (ela aceita ID puro ou URL completa):
+
+javascript
+function extrairIdYoutube(valor) {
+    if (!valor) return '';
+
+    // Se já for um ID puro (11 caracteres, sem barras ou pontos)
+    if (/^[a-zA-Z0-9_-]{11}$/.test(valor.trim())) {
+        return valor.trim();
+    }
+
+    // Tenta extrair de URLs comuns do YouTube
+    const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const match = valor.match(regex);
+
+    return match ? match[1] : valor.trim();
+}
+4. Garanta que os campos novos sejam renderizados nos cartões
+A função renderizarJogos já usa j.logo e j.name. O trailerId só é usado no modal de detalhes. Como o formulário agora salva esses campos no state.jogos, tudo deve funcionar automaticamente. Só confirme que ela está assim:
+
+javascript
+function renderizarJogos() {
+    const lista = document.getElementById('list-jogos');
+    lista.innerHTML = state.jogos.map(j => `
+        <div class="card card-jogo" onclick="abrirDetalhesJogo(${j.id})">
+            <img src="${j.logo}" alt="Logo ${j.name}" class="card-logo" onerror="this.style.display='none'">
+            <span class="card-tag">${j.genre}</span>
+            <h3>${j.name}</h3>
+        </div>
+    `).join('');
+}
