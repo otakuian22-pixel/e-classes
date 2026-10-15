@@ -206,6 +206,32 @@ function renderizarConfrontos() {
     }).join('');
 }
 
+function extrairIdYoutube(valor) {
+    if (!valor) return '';
+
+    // Se já for um ID puro (11 caracteres, sem barras ou pontos)
+    if (/^[a-zA-Z0-9_-]{11}$/.test(valor.trim())) {
+        return valor.trim();
+    }
+
+    // Tenta extrair de URLs comuns do YouTube
+    const regex = /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const match = valor.match(regex);
+
+    return match ? match[1] : valor.trim();
+}
+
+function renderizarJogos() {
+    const lista = document.getElementById('list-jogos');
+    lista.innerHTML = state.jogos.map(j => `
+        <div class="card card-jogo" onclick="abrirDetalhesJogo(${j.id})">
+            <img src="${j.logo}" alt="Logo ${j.name}" class="card-logo" onerror="this.style.display='none'">
+            <span class="card-tag">${j.genre}</span>
+            <h3>${j.name}</h3>
+        </div>
+    `).join('');
+}
+
 // --- Modal e formulários ---
 
 const modal = document.getElementById('modal-container');
@@ -223,104 +249,113 @@ window.abrirFormulario = function (tipo) {
 
     const formularios = {
         jogo: `
-            <h2>Adicionar Jogo</h2>
-            <form onsubmit="salvarItem(event, 'jogos')">
-                <div class="form-group">
-                    <label>Nome do Jogo</label>
-                    <input type="text" name="name" required placeholder="Ex: CS2">
-                </div>
-                <div class="form-group">
-                    <label>Gênero</label>
-                    <input type="text" name="genre" required placeholder="Ex: FPS">
-                </div>
-                <div style="display:flex; gap: 1rem;">
-                    <button type="submit" class="btn-primary">Salvar</button>
-                    <button type="button" onclick="fecharModal()">Cancelar</button>
-                </div>
-            </form>
-        `,
-        time: `
-            <h2>Adicionar Time</h2>
-            <form onsubmit="salvarItem(event, 'times')">
-                <div class="form-group">
-                    <label>Nome da Equipe</label>
-                    <input type="text" name="name" required placeholder="Ex: Ninjas da Noite">
-                </div>
-                <div class="form-group">
-                    <label>Cor Identidade</label>
-                    <input type="color" name="color" value="#6366f1">
-                </div>
-                <div style="display:flex; gap: 1rem;">
-                    <button type="submit" class="btn-primary">Criar</button>
-                    <button type="button" onclick="fecharModal()">Cancelar</button>
-                </div>
-            </form>
-        `,
-        competidor: `
-            <h2>Registrar Competidor</h2>
-            <form onsubmit="salvarItem(event, 'competidores')">
-                <div class="form-group">
-                    <label>Nome Completo</label>
-                    <input type="text" name="name" required>
-                </div>
-                <div class="form-group">
-                    <label>Nickname</label>
-                    <input type="text" name="nickname" required>
-                </div>
-                <div class="form-group">
-                    <label>Time</label>
-                    <select name="teamId" required>${optionsTimes}</select>
-                </div>
-                <div style="display:flex; gap: 1rem;">
-                    <button type="submit" class="btn-primary">Registrar</button>
-                    <button type="button" onclick="fecharModal()">Cancelar</button>
-                </div>
-            </form>
-        `,
-        confronto: `
-            <h2>Novo Confronto</h2>
-            <form onsubmit="salvarItem(event, 'confrontos')">
-                <div class="form-group">
-                    <label>Jogo</label>
-                    <select name="gameId" required>${optionsJogos}</select>
-                </div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label>Time A</label>
-                        <select name="team1Id" required>${optionsTimes}</select>
-                    </div>
-                    <div class="form-group">
-                        <label>Time B</label>
-                        <select name="team2Id" required>${optionsTimes}</select>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Data/Hora</label>
-                    <input type="datetime-local" name="date" required value="${new Date().toISOString().slice(0, 16)}">
-                </div>
-                <input type="hidden" name="score1" value="0">
-                <input type="hidden" name="score2" value="0">
-                <input type="hidden" name="status" value="scheduled">
-                <div style="display:flex; gap: 1rem;">
-                    <button type="submit" class="btn-primary">Agendar</button>
-                    <button type="button" onclick="fecharModal()">Cancelar</button>
-                </div>
-            </form>
-        `,
+    <h2>Adicionar Jogo</h2>
+    <form onsubmit="salvarItem(event, 'jogos')">
+        <div class="form-group">
+            <label>Nome do Jogo</label>
+            <input type="text" name="name" required placeholder="Ex: League of Legends">
+        </div>
+
+        <div class="form-group">
+            <label>Gênero</label>
+            <select name="genre" required>
+                <option value="" disabled selected>Selecione um gênero</option>
+                <option value="MOBA">MOBA</option>
+                <option value="FPS">FPS</option>
+                <option value="Esport">Esport</option>
+                <option value="Fighting">Fighting</option>
+                <option value="RPG">RPG</option>
+                <option value="Battle Royale">Battle Royale</option>
+                <option value="Estratégia">Estratégia</option>
+                <option value="Card Game">Card Game</option>
+                <option value="Outro">Outro</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label>URL da Logo</label>
+            <input 
+                type="url" 
+                name="logo" 
+                required 
+                placeholder="https://exemplo.com/logo.png"
+                oninput="previewLogo(this.value)"
+            >
+            <small style="color: var(--text-dim); font-size: 0.75rem; display: block; margin-top: 0.5rem;">
+                Cole o link direto da imagem (deve terminar em .png, .jpg ou .svg)
+            </small>
+            <div id="logo-preview" style="margin-top: 1rem; display: none;">
+                <img id="logo-preview-img" src="" alt="Preview" style="max-width: 120px; max-height: 120px; object-fit: contain; background: rgba(255,255,255,0.05); padding: 0.5rem; border-radius: 12px;">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>ID do Trailer (YouTube)</label>
+            <input 
+                type="text" 
+                name="trailerId" 
+                required 
+                placeholder="Ex: vzHrjOMfHPY"
+            >
+            <small style="color: var(--text-dim); font-size: 0.75rem; display: block; margin-top: 0.5rem;">
+                Pegue apenas o código depois de <strong>watch?v=</strong> ou <strong>embed/</strong>. 
+                Ex: em <em>youtube.com/watch?v=<strong>vzHrjOMfHPY</strong></em>, o ID é <strong>vzHrjOMfHPY</strong>.
+            </small>
+        </div>
+
+        <div style="display:flex; gap: 1rem;">
+            <button type="submit" class="btn-primary">Salvar</button>
+            <button type="button" onclick="fecharModal()">Cancelar</button>
+        </div>
+    </form>
+`,
     };
 
     formContent.innerHTML = formularios[tipo] || '';
 };
 
+window.previewLogo = function (url) {
+    const container = document.getElementById('logo-preview');
+    const img = document.getElementById('logo-preview-img');
+
+    if (!url || url.trim() === '') {
+        container.style.display = 'none';
+        return;
+    }
+
+    img.src = url;
+    img.onload = () => {
+        container.style.display = 'block';
+    };
+    img.onerror = () => {
+        container.style.display = 'none';
+    };
+};
+
 window.fecharModal = function () {
     modal.style.opacity = '0';
     modal.style.pointerEvents = 'none';
-    setTimeout(() => { modal.style.display = 'none'; }, 300);
+    setTimeout(() => {
+        modal.style.display = 'none';
+    }, 300);
 };
 
 window.salvarItem = function (event, colecao) {
     event.preventDefault();
     const dados = Object.fromEntries(new FormData(event.target).entries());
+
+    // Validação para confrontos
+    if (colecao === 'confrontos') {
+        if (dados.team1Id === dados.team2Id) {
+            alert('Os times do confronto devem ser diferentes!');
+            return;
+        }
+    }
+
+    // Limpa o trailerId: se o usuário colar a URL inteira, extrai só o ID
+    if (dados.trailerId) {
+        dados.trailerId = extrairIdYoutube(dados.trailerId);
+    }
 
     const maxId = state[colecao].reduce((max, item) => (item.id > max ? item.id : max), 0);
     dados.id = maxId + 1;
@@ -375,7 +410,7 @@ window.abrirDetalhesJogo = function (jogoId) {
 
     // Renderiza os confrontos
     const listaConfrontos = document.getElementById('detalhe-confrontos');
-    
+
     if (confrontosDoJogo.length === 0) {
         listaConfrontos.innerHTML = '<p class="subtitle">Nenhum confronto agendado para este jogo.</p>';
     } else {
@@ -415,10 +450,10 @@ window.fecharDetalhesJogo = function () {
     const modalDetalhes = document.getElementById('modal-detalhes');
     modalDetalhes.style.opacity = '0';
     modalDetalhes.style.pointerEvents = 'none';
-    
+
     // Para o vídeo
     document.getElementById('detalhe-video').src = '';
-    
+
     setTimeout(() => {
         modalDetalhes.style.display = 'none';
     }, 300);

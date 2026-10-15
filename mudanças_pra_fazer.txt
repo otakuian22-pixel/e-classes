@@ -1,0 +1,11 @@
+arrumar{
+    botão de cadastro competidores,
+    botão de cadastro confrontos,
+    botão de cadastro Times,
+};
+
+adicionar{
+    POST
+    PUSH
+    DELETE
+};
