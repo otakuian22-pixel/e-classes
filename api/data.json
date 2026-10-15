@@ -1,51 +1,92 @@
 {
   "competitors": [
-    { "id": 1, "name": "Pedro Santos", "nickname": "Pterodactyl", "teamId": 1 },
-    { "id": 2, "name": "Julia Lima", "nickname": "JuliaX", "teamId": 1 },
-    { "id": 3, "name": "Carlos Eduardo", "nickname": "Cadu00", "teamId": 2 },
-    { "id": 4, "name": "Ana Oliveira", "nickname": "AnaPvP", "teamId": 2 }
+    {
+      "id": 1,
+      "name": "Pedro Santos",
+      "nickname": "Pterodactyl",
+      "teamId": 1
+    },
+    {
+      "id": 2,
+      "name": "Julia Lima",
+      "nickname": "JuliaX",
+      "teamId": 1
+    },
+    {
+      "id": 3,
+      "name": "Carlos Eduardo",
+      "nickname": "Cadu00",
+      "teamId": 2
+    },
+    {
+      "id": 4,
+      "name": "Ana Oliveira",
+      "nickname": "AnaPvP",
+      "teamId": 2
+    }
   ],
   "teams": [
-    { "id": 1, "name": "Cyber Dragons", "color": "#7B1FA2" },
-    { "id": 2, "name": "Neon Knights", "color": "#00BCD4" }
+    {
+      "id": 1,
+      "name": "Cyber Dragons",
+      "color": "#7B1FA2"
+    },
+    {
+      "id": 2,
+      "name": "Neon Knights",
+      "color": "#00BCD4"
+    }
   ],
- "games": [
-  {
-    "id": 1,
-    "name": "League of Legends",
-    "genre": "MOBA",
-    "logo": "../assets/LoL-Symbol.png",
-    "trailerId": "vzHrjOMfHPY"
-  },
-  {
-    "id": 2,
-    "name": "VALORANT",
-    "genre": "FPS",
-    "logo": "../assets/Valorant_Logomark_Red.png",
-    "trailerId": "lWr6dhTcu-E"
-  },
-  {
-    "id": 3,
-    "name": "Counter-Strike 2",
-    "genre": "FPS",
-    "logo": "../assets/Logo_CS2.png",
-    "trailerId": "nSE38xjMLqE"
-  },
-  {
-    "id": 4,
-    "name": "Rocket League",
-    "genre": "Esport",
-    "logo": "../assets/rocket_league_logo.png",
-    "trailerId": "OmMF9EDbmQQ"
-  },
-  {
-    "id": 5,
-    "name": "Avatar Legends: The Fighting Game",
-    "genre": "Fighting",
-    "logo": "../assets/avatar_legends.png",
-    "trailerId": "-dqn9PIURRs"
-  }
-
+  "games": [
+    {
+      "id": 1,
+      "name": "League of Legends",
+      "genre": "MOBA",
+      "logo": "../assets/LoL-Symbol.png",
+      "trailerId": "vzHrjOMfHPY"
+    },
+    {
+      "id": 2,
+      "name": "VALORANT",
+      "genre": "FPS",
+      "logo": "../assets/Valorant_Logomark_Red.png",
+      "trailerId": "lWr6dhTcu-E"
+    },
+    {
+      "id": 3,
+      "name": "Counter-Strike 2",
+      "genre": "FPS",
+      "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ3BqMBfgsbI93uYHNnkVym78s7dRpJ3cQ6qEQzuXWmnA&s",
+      "trailerId": "nSE38xjMLqE"
+    },
+    {
+      "id": 4,
+      "name": "Rocket League",
+      "genre": "Esport",
+      "logo": "../assets/rocket_league_logo.png",
+      "trailerId": "OmMF9EDbmQQ"
+    },
+    {
+      "id": 5,
+      "name": "Avatar Legends: The Fighting Game",
+      "genre": "Fighting",
+      "logo": "../assets/avatar_legends.png",
+      "trailerId": "-dqn9PIURRs"
+    },
+    {
+      "name": "Street Fighter 6",
+      "genre": "Fighting",
+      "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQvEahx8IMQ5s5xAVzrRtyGvN2_ZOo1Wl075nnVhCtLjA&s=10",
+      "trailerId": "1INU3FOJsTw",
+      "id": 6
+    },
+    {
+      "name": "Dota 2",
+      "genre": "MOBA",
+      "logo": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQiEvjVJZlyCY6nVshW04XBzIFjwSazWz1SLBlds6whvA&s",
+      "trailerId": "-cSFPIwMEq4",
+      "id": 7
+    }
   ],
   "matches": [
     {

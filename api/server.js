@@ -9,16 +9,35 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 app.use('/assets', express.static(path.join(__dirname, 'assets')));
-
-// Servir arquivos estáticos
 app.use('/assets', express.static(path.join(__dirname, '..', 'assets')));
 app.use(express.static(path.join(__dirname, '..', 'front')));
 
-// Lê o arquivo de dados
+const CAMINHO_DADOS = path.join(__dirname, 'data.json');
+
+// Rota da API -> chave dentro do data.json + campos obrigatórios no POST
+const RECURSOS = {
+    jogos:        { chave: 'games',       nome: 'Jogo',       obrigatorios: ['name', 'genre', 'logo', 'trailerId'] },
+    times:        { chave: 'teams',       nome: 'Time',       obrigatorios: ['name', 'color'] },
+    competidores: { chave: 'competitors', nome: 'Competidor', obrigatorios: ['name', 'nickname', 'teamId'] },
+    confrontos:   { chave: 'matches',     nome: 'Confronto',  obrigatorios: ['gameId', 'team1Id', 'team2Id', 'date'] },
+};
+
 function lerDados() {
-    const caminho = path.join(__dirname, 'data.json');
-    const conteudo = fs.readFileSync(caminho, 'utf-8');
-    return JSON.parse(conteudo);
+    return JSON.parse(fs.readFileSync(CAMINHO_DADOS, 'utf-8'));
+}
+
+function escreverDados(dados) {
+    fs.writeFileSync(CAMINHO_DADOS, JSON.stringify(dados, null, 2), 'utf-8');
+}
+
+// Valida o recurso da URL (jogos, times, ...)
+function validarRecurso(req, res, next) {
+    const recurso = RECURSOS[req.params.recurso];
+    if (!recurso) {
+        return res.status(404).json({ erro: 'Recurso não encontrado' });
+    }
+    req.recurso = recurso;
+    next();
 }
 
 // GET / - boas vindas
@@ -26,88 +45,82 @@ app.get('/', (req, res) => {
     res.status(200).json({
         mensagem: 'Bem vindo à API GamerClass',
         status: 'sucesso',
-        rotas: ['/api/jogos', '/api/times', '/api/competidores', '/api/confrontos'],
+        rotas: Object.keys(RECURSOS).map(r => `/api/${r}`),
     });
 });
 
-// GET /api/jogos - todos os jogos
-app.get('/api/jogos', (req, res) => {
-    const { games } = lerDados();
-    res.status(200).json(games);
+// GET /api/:recurso - lista
+app.get('/api/:recurso', validarRecurso, (req, res) => {
+    res.status(200).json(lerDados()[req.recurso.chave]);
 });
 
-// GET /api/jogos/:id - um jogo pelo id
-app.get('/api/jogos/:id', (req, res) => {
-    const { games } = lerDados();
-    const jogo = games.find(j => j.id === Number(req.params.id));
+// GET /api/:recurso/:id - um item
+app.get('/api/:recurso/:id', validarRecurso, (req, res) => {
+    const { chave, nome } = req.recurso;
+    const item = lerDados()[chave].find(i => i.id === Number(req.params.id));
 
-    if (!jogo) {
-        return res.status(404).json({ erro: 'Jogo não encontrado' });
+    if (!item) return res.status(404).json({ erro: `${nome} não encontrado` });
+    res.status(200).json(item);
+});
+
+// POST /api/:recurso - cria
+app.post('/api/:recurso', validarRecurso, (req, res) => {
+    const { chave, obrigatorios } = req.recurso;
+    const faltando = obrigatorios.filter(c => req.body[c] === undefined || req.body[c] === '');
+
+    if (faltando.length) {
+        return res.status(400).json({ erro: `Campos obrigatórios: ${faltando.join(', ')}` });
     }
 
-    res.status(200).json(jogo);
+    const dados = lerDados();
+    const maxId = dados[chave].reduce((max, i) => Math.max(max, i.id), 0);
+    const novo = { ...req.body, id: maxId + 1 };
+
+    dados[chave].push(novo);
+    escreverDados(dados);
+    res.status(201).json(novo);
 });
 
-// GET /api/times - todos os times
-app.get('/api/times', (req, res) => {
-    const { teams } = lerDados();
-    res.status(200).json(teams);
+// PUT /api/:recurso/:id - atualiza (mescla os campos enviados)
+app.put('/api/:recurso/:id', validarRecurso, (req, res) => {
+    const { chave, nome } = req.recurso;
+    const dados = lerDados();
+    const indice = dados[chave].findIndex(i => i.id === Number(req.params.id));
+
+    if (indice === -1) return res.status(404).json({ erro: `${nome} não encontrado` });
+
+    dados[chave][indice] = { ...dados[chave][indice], ...req.body, id: dados[chave][indice].id };
+    escreverDados(dados);
+    res.status(200).json(dados[chave][indice]);
 });
 
-// GET /api/times/:id - um time pelo id
-app.get('/api/times/:id', (req, res) => {
-    const { teams } = lerDados();
-    const time = teams.find(t => t.id === Number(req.params.id));
+// DELETE /api/:recurso/:id - remove
+app.delete('/api/:recurso/:id', validarRecurso, (req, res) => {
+    const { chave, nome } = req.recurso;
+    const id = Number(req.params.id);
+    const dados = lerDados();
+    const existe = dados[chave].some(i => i.id === id);
 
-    if (!time) {
-        return res.status(404).json({ erro: 'Time não encontrado' });
+    if (!existe) return res.status(404).json({ erro: `${nome} não encontrado` });
+
+    dados[chave] = dados[chave].filter(i => i.id !== id);
+
+    // Mantém a consistência dos dados relacionados
+    if (chave === 'games') {
+        dados.matches = dados.matches.filter(m => m.gameId !== id);
+    }
+    if (chave === 'teams') {
+        dados.matches = dados.matches.filter(m => m.team1Id !== id && m.team2Id !== id);
+        dados.competitors = dados.competitors.map(c => (c.teamId === id ? { ...c, teamId: null } : c));
     }
 
-    res.status(200).json(time);
-});
-
-// GET /api/competidores - todos os competidores
-app.get('/api/competidores', (req, res) => {
-    const { competitors } = lerDados();
-    res.status(200).json(competitors);
-});
-
-// GET /api/competidores/:id - um competidor pelo id
-app.get('/api/competidores/:id', (req, res) => {
-    const { competitors } = lerDados();
-    const competidor = competitors.find(c => c.id === Number(req.params.id));
-
-    if (!competidor) {
-        return res.status(404).json({ erro: 'Competidor não encontrado' });
-    }
-
-    res.status(200).json(competidor);
-});
-
-// GET /api/confrontos - todos os confrontos
-app.get('/api/confrontos', (req, res) => {
-    const { matches } = lerDados();
-    res.status(200).json(matches);
-});
-
-// GET /api/confrontos/:id - um confronto pelo id
-app.get('/api/confrontos/:id', (req, res) => {
-    const { matches } = lerDados();
-    const confronto = matches.find(m => m.id === Number(req.params.id));
-
-    if (!confronto) {
-        return res.status(404).json({ erro: 'Confronto não encontrado' });
-    }
-
-    res.status(200).json(confronto);
+    escreverDados(dados);
+    res.status(200).json({ mensagem: `${nome} removido com sucesso` });
 });
 
 // Rota não encontrada
 app.use((req, res) => {
-    res.status(404).json({
-        erro: 'Rota não encontrada',
-        mensagem: 'Apenas requisições GET são suportadas nesta API',
-    });
+    res.status(404).json({ erro: 'Rota não encontrada' });
 });
 
 app.listen(PORT, () => {
