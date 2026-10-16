@@ -51,12 +51,11 @@
 
 /* Logo dentro do cartão */
 .card-logo {
-    display: block;   /* adicione esta linha */
     width: 60px;
     height: 60px;
-    object-fit: contain;
+    object-fit: contain; /* Garante que a imagem não distorça */
     margin-bottom: 1rem;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.05); /* Fundo sutil para logos escuras */
     border-radius: 12px;
     padding: 0.5rem;
 }
@@ -330,40 +329,4 @@ select:focus {
     outline: none;
     border-color: var(--primary);
     background-color: #0f172a;
-}
-/* --- Ações dos cards (Editar / Excluir) --- */
-.card-actions {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
-
-.card-actions button {
-    padding: 0.4rem 1rem;
-    font-size: 0.8rem;
-}
-
-.btn-secondary {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-}
-
-.btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.btn-danger {
-    background: rgba(244, 63, 94, 0.2);
-    color: #f43f5e;
-}
-
-.btn-danger:hover {
-    background: #f43f5e;
-    color: white;
-}
-
-/* Formulário longo (confronto) rola dentro da tela */
-.form-container {
-    max-height: 90vh;
-    overflow-y: auto;
 }
